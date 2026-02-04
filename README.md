@@ -1,6 +1,7 @@
-# Hostel Management System (Replica)
+# Hostel Management System by dev Reagan Okoth
 
-A modern, full-stack replica of the Hostel Management System, built with the MERN stack (well, Node/Express/React/Tailwind + JSON DB).
+
+A modern, full-stack of the Hostel Management System, built with the MERN stack (well, Node/Express/React/Tailwind + JSON DB).
 
 ## Features
 - **Modern Tech Stack**: React, Tailwind CSS, Node.js, Express.
