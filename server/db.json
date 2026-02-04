@@ -17,6 +17,12 @@
       "username": "Frank",
       "password": "Frank1234",
       "role": "student"
+    },
+    {
+      "id": 1770195994821,
+      "username": "Gigs",
+      "password": "1234",
+      "role": "student"
     }
   ],
   "rooms": [
@@ -80,6 +86,50 @@
       "room_id": 1770189023411,
       "start_date": "2026-02-04T07:40:58.225Z",
       "end_date": "2026-03-06T07:40:58.235Z"
+    }
+  ],
+  "students": [
+    {
+      "id": 1770200000001,
+      "name": "John Doe",
+      "email": "john.doe@university.edu",
+      "phone": "+1234567890",
+      "student_id": "STU-2026-001",
+      "room_number": "101",
+      "course": "Computer Science",
+      "year": "2nd Year",
+      "guardian_name": "Jane Doe",
+      "guardian_phone": "+1234567891",
+      "amount_paid": 500,
+      "created_at": "2026-02-04T08:00:00.000Z"
+    },
+    {
+      "id": 1770200000002,
+      "name": "Alice Smith",
+      "email": "alice.smith@university.edu",
+      "phone": "+1234567892",
+      "student_id": "STU-2026-002",
+      "room_number": "102",
+      "course": "Business Administration",
+      "year": "1st Year",
+      "guardian_name": "Bob Smith",
+      "guardian_phone": "+1234567893",
+      "amount_paid": 400,
+      "created_at": "2026-02-04T08:00:00.000Z"
+    },
+    {
+      "id": 1770196260843,
+      "created_at": "2026-02-04T09:11:00.843Z",
+      "name": "Reagan Okoth",
+      "email": "okothreagan2000@gmail.com",
+      "phone": "254759011628",
+      "student_id": "DICT23J",
+      "room_number": "112",
+      "course": "ICT",
+      "year": "3rd Year",
+      "guardian_name": "Florence ",
+      "guardian_phone": "254787887588",
+      "amount_paid": 5000
     }
   ]
 }

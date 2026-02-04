@@ -32,10 +32,19 @@ app.post('/api/login', (req, res) => {
     }
 });
 
+// ======== ROOMS ========
 // Get Rooms
 app.get('/api/rooms', (req, res) => {
     const rooms = db.rooms.findAll();
     res.json(rooms);
+});
+
+// Search Rooms
+app.get('/api/rooms/search', (req, res) => {
+    const { q } = req.query;
+    if (!q) return res.json(db.rooms.findAll());
+    const results = db.rooms.search(q);
+    res.json(results);
 });
 
 // Add Room (Admin)
@@ -56,6 +65,78 @@ app.delete('/api/rooms/:id', (req, res) => {
     }
 });
 
+// ======== STUDENTS ========
+// Get all Students
+app.get('/api/students', (req, res) => {
+    const students = db.students.findAll();
+    res.json(students);
+});
+
+// Search Students
+app.get('/api/students/search', (req, res) => {
+    const { q } = req.query;
+    if (!q) return res.json(db.students.findAll());
+    const results = db.students.search(q);
+    res.json(results);
+});
+
+// Get Single Student
+app.get('/api/students/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+    const student = db.students.findById(id);
+    if (student) {
+        res.json(student);
+    } else {
+        res.status(404).json({ error: 'Student not found' });
+    }
+});
+
+// Add Student
+app.post('/api/students', (req, res) => {
+    const { name, email, phone, student_id, room_number, course, year, guardian_name, guardian_phone, amount_paid } = req.body;
+    if (!name || !email || !student_id) {
+        return res.status(400).json({ error: "Name, email, and student ID are required" });
+    }
+    const newStudent = db.students.create({
+        name, email, phone, student_id, room_number, course, year,
+        guardian_name, guardian_phone, amount_paid: parseFloat(amount_paid) || 0
+    });
+    res.json(newStudent);
+});
+
+// Update Student
+app.put('/api/students/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+    const updates = req.body;
+    if (updates.amount_paid) {
+        updates.amount_paid = parseFloat(updates.amount_paid) || 0;
+    }
+    const updated = db.students.update(id, updates);
+    if (updated) {
+        res.json(updated);
+    } else {
+        res.status(404).json({ error: 'Student not found' });
+    }
+});
+
+// Delete Student
+app.delete('/api/students/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+    const deleted = db.students.delete(id);
+    if (deleted) {
+        res.json({ message: 'Student deleted successfully', student: deleted });
+    } else {
+        res.status(404).json({ error: 'Student not found' });
+    }
+});
+
+// ======== BOOKINGS ========
+// Get all Bookings
+app.get('/api/bookings', (req, res) => {
+    const bookings = db.bookings.findAll();
+    res.json(bookings);
+});
+
 // Book Room
 app.post('/api/bookings', (req, res) => {
     const { user_id, room_id, start_date, end_date } = req.body;
@@ -65,6 +146,29 @@ app.post('/api/bookings', (req, res) => {
     db.rooms.update(room_id, { is_occupied: true });
 
     res.json(booking);
+});
+
+// ======== SEARCH (Global) ========
+app.get('/api/search', (req, res) => {
+    const { q, type } = req.query;
+    if (!q) return res.status(400).json({ error: "Search query is required" });
+
+    let results = { rooms: [], students: [] };
+
+    if (!type || type === 'all' || type === 'rooms') {
+        results.rooms = db.rooms.search(q);
+    }
+    if (!type || type === 'all' || type === 'students') {
+        results.students = db.students.search(q);
+    }
+
+    res.json(results);
+});
+
+// ======== REPORTS ========
+app.get('/api/reports', (req, res) => {
+    const report = db.reports.generate();
+    res.json(report);
 });
 
 app.listen(PORT, () => {
