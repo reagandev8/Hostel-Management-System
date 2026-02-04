@@ -49,7 +49,7 @@
     },
     {
       "id": 1770110455523,
-      "is_occupied": false,
+      "is_occupied": true,
       "room_number": "112",
       "capacity": "2",
       "price": "555"
@@ -60,6 +60,13 @@
       "room_number": "204",
       "capacity": "2",
       "price": "1500"
+    },
+    {
+      "id": 1770201134023,
+      "is_occupied": false,
+      "room_number": "668",
+      "capacity": "4",
+      "price": "5000"
     }
   ],
   "bookings": [
@@ -86,6 +93,14 @@
       "room_id": 1770189023411,
       "start_date": "2026-02-04T07:40:58.225Z",
       "end_date": "2026-03-06T07:40:58.235Z"
+    },
+    {
+      "id": 1770201078726,
+      "status": "pending",
+      "user_id": 1770196260843,
+      "room_id": 1770110455523,
+      "start_date": "2026-02-04T10:31:18.712Z",
+      "end_date": "2026-03-06T10:31:18.723Z"
     }
   ],
   "students": [
@@ -130,6 +145,20 @@
       "guardian_name": "Florence ",
       "guardian_phone": "254787887588",
       "amount_paid": 5000
+    },
+    {
+      "id": 1770200386745,
+      "created_at": "2026-02-04T10:19:46.745Z",
+      "name": "Reagan",
+      "email": "reagan@gmail.com",
+      "phone": "3666666676",
+      "student_id": "DICT22S",
+      "room_number": "112",
+      "course": "FB",
+      "year": "3rd Year",
+      "guardian_name": "",
+      "guardian_phone": "",
+      "amount_paid": 0
     }
   ]
 }

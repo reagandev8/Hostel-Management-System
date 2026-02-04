@@ -13,23 +13,48 @@ app.post('/api/register', (req, res) => {
     const { username, password, role } = req.body;
     if (!username || !password) return res.status(400).json({ error: "Username and password required" });
 
+    // Restrict student from registering as admin
+    const finalRole = role === 'admin' ? 'student' : (role || 'student');
+
     const existingUser = db.users.find(u => u.username === username);
     if (existingUser) return res.status(400).json({ error: "Username already exists" });
 
-    const newUser = db.users.create({ username, password, role: role || 'student' });
+    const newUser = db.users.create({ username, password, role: finalRole });
     res.json(newUser);
 });
 
 // Login
 app.post('/api/login', (req, res) => {
-    const { username, password } = req.body;
-    const user = db.users.find(u => u.username === username && u.password === password);
+    const { username, password, role } = req.body;
+    console.log(`Login attempt: role=${role}, username=${username}`);
 
-    if (user) {
-        res.json(user);
+    if (role === 'admin') {
+        const user = db.users.find(u => u.username === username && u.password === password && u.role === 'admin');
+        if (user) {
+            console.log('Admin login successful');
+            return res.json(user);
+        }
     } else {
-        res.status(401).json({ error: "Invalid credentials" });
+        // Student login: username = student_id, password = email
+        const student = db.students.findAll().find(s =>
+            s.student_id.trim().toLowerCase() === username.trim().toLowerCase() &&
+            s.email.trim().toLowerCase() === password.trim().toLowerCase()
+        );
+
+        if (student) {
+            console.log('Student login successful:', student.name);
+            return res.json({
+                ...student,
+                username: student.name,
+                role: 'student'
+            });
+        } else {
+            console.log('Student not found with matching ID/Email');
+        }
     }
+
+    console.log('Login failed');
+    res.status(401).json({ error: "Invalid credentials or unauthorized" });
 });
 
 // ======== ROOMS ========

@@ -30,11 +30,7 @@ const Home = () => {
                             Admin Access
                         </Link>
                     </div>
-                    <div className="text-center sm:text-left">
-                        <Link to="/student/signup" className="text-slate-500 hover:text-blue-400 text-sm font-medium transition-colors">
-                            First time here? <span className="underline">Register as a Student</span>
-                        </Link>
-                    </div>
+
                 </div>
                 <div className="hidden md:flex items-center justify-center relative">
                     <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/20 to-purple-500/20 rounded-full blur-3xl"></div>
