@@ -94,7 +94,7 @@ const Signup = () => {
                             required
                         />
                     </div>
-                    <div>
+                    <div className="hidden">
                         <label className="block text-sm font-medium text-slate-300 mb-1.5">Role</label>
                         <select
                             name="role"
@@ -103,7 +103,6 @@ const Signup = () => {
                             className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none transition-all text-slate-100"
                         >
                             <option value="student">Student</option>
-                            <option value="admin">Admin</option>
                         </select>
                     </div>
                     <button

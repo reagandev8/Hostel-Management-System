@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import StudentDashboard from './pages/StudentDashboard';
 import AdminDashboard from './pages/AdminDashboard';
+import ForgotPassword from './pages/ForgotPassword';
 import { Loader2 } from 'lucide-react';
 
 const ProtectedRoute = ({ children, allowedRole }) => {
@@ -33,6 +34,7 @@ function AppRoutes() {
             <Route path="/student/signup" element={<Signup />} />
             <Route path="/student/login" element={<Login type="student" />} />
             <Route path="/admin/login" element={<Login type="admin" />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
 
             <Route
                 path="/student/dashboard"

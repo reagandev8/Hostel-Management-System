@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
 
 const Login = ({ type }) => {
     const [formData, setFormData] = useState({ username: '', password: '' });
@@ -18,7 +18,7 @@ const Login = ({ type }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
-        const res = await login(formData.username, formData.password);
+        const res = await login(formData.username, formData.password, type);
         setIsLoading(false);
 
         if (res.success) {
@@ -37,6 +37,11 @@ const Login = ({ type }) => {
             </div>
 
             <div className="w-full max-w-md glass p-8 rounded-2xl shadow-xl border border-slate-800 relative z-10">
+                <Link to="/" className="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors text-sm mb-6 group">
+                    <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+                    Back to Home
+                </Link>
+
                 <div className="text-center mb-8">
                     <h2 className="text-3xl font-bold capitalize bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">{type} Login</h2>
                     <p className="text-slate-500 mt-2">Welcome back! Please enter your details.</p>
@@ -51,26 +56,37 @@ const Login = ({ type }) => {
 
                 <form onSubmit={handleSubmit} className="space-y-5">
                     <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-1.5">Username</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1.5">
+                            {type === 'admin' ? 'Username' : 'Student ID'}
+                        </label>
                         <input
                             type="text"
                             name="username"
                             value={formData.username}
                             onChange={handleChange}
                             className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none transition-all text-slate-100 placeholder-slate-600"
-                            placeholder="Enter your username"
+                            placeholder={type === 'admin' ? "Enter your username" : "Enter your Student ID"}
                             required
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-1.5">Password</label>
+                        <div className="flex justify-between items-center mt-1.5">
+                            <label className="block text-sm font-medium text-slate-300">
+                                {type === 'admin' ? 'Password' : 'Email Address'}
+                            </label>
+                            {type === 'student' && (
+                                <Link to="/forgot-password" size="sm" className="text-xs text-blue-400 hover:text-blue-300 transition-colors">
+                                    Forgot Login Credentials?
+                                </Link>
+                            )}
+                        </div>
                         <input
-                            type="password"
+                            type={type === 'admin' ? "password" : "email"}
                             name="password"
                             value={formData.password}
                             onChange={handleChange}
                             className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none transition-all text-slate-100 placeholder-slate-600"
-                            placeholder="••••••••"
+                            placeholder={type === 'admin' ? "••••••••" : "Enter your registered email"}
                             required
                         />
                     </div>
@@ -85,11 +101,8 @@ const Login = ({ type }) => {
 
                 {type === 'student' && (
                     <div className="text-center mt-6">
-                        <p className="text-slate-400 text-sm">
-                            Don't have an account?{' '}
-                            <Link to="/student/signup" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">
-                                Create one
-                            </Link>
+                        <p className="text-slate-500 text-xs italic">
+                            Only admin-registered students can access the dashboard.
                         </p>
                     </div>
                 )}
