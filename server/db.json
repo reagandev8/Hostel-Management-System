@@ -1,0 +1,85 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "admin",
+      "password": "admin123",
+      "role": "admin"
+    },
+    {
+      "id": 1770110146736,
+      "username": "Reagan",
+      "password": "123456",
+      "role": "admin"
+    },
+    {
+      "id": 1770110335279,
+      "username": "Frank",
+      "password": "Frank1234",
+      "role": "student"
+    }
+  ],
+  "rooms": [
+    {
+      "id": 1,
+      "room_number": "101",
+      "capacity": 2,
+      "price": 500,
+      "is_occupied": true
+    },
+    {
+      "id": 2,
+      "room_number": "102",
+      "capacity": 3,
+      "price": 400,
+      "is_occupied": true
+    },
+    {
+      "id": 3,
+      "room_number": "103",
+      "capacity": 2,
+      "price": 500,
+      "is_occupied": true
+    },
+    {
+      "id": 1770110455523,
+      "is_occupied": false,
+      "room_number": "112",
+      "capacity": "2",
+      "price": "555"
+    },
+    {
+      "id": 1770189023411,
+      "is_occupied": true,
+      "room_number": "204",
+      "capacity": "2",
+      "price": "1500"
+    }
+  ],
+  "bookings": [
+    {
+      "id": 1770110405966,
+      "status": "pending",
+      "user_id": 1770110335279,
+      "room_id": 1,
+      "start_date": "2026-02-03T09:20:05.869Z",
+      "end_date": "2026-03-05T09:20:05.882Z"
+    },
+    {
+      "id": 1770189051671,
+      "status": "pending",
+      "user_id": 1770110335279,
+      "room_id": 2,
+      "start_date": "2026-02-04T07:10:51.413Z",
+      "end_date": "2026-03-06T07:10:51.598Z"
+    },
+    {
+      "id": 1770190858244,
+      "status": "pending",
+      "user_id": 1770110335279,
+      "room_id": 1770189023411,
+      "start_date": "2026-02-04T07:40:58.225Z",
+      "end_date": "2026-03-06T07:40:58.235Z"
+    }
+  ]
+}
