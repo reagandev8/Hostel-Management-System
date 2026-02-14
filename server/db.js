@@ -8,10 +8,9 @@ const defaultData = {
     { id: 1, username: 'admin', password: 'admin123', role: 'admin' }
   ],
   rooms: [
-    { id: 1, room_number: '101', capacity: 2, price: 500, is_occupied: false },
-    { id: 2, room_number: '102', capacity: 3, price: 400, is_occupied: false },
-    { id: 3, room_number: '103', capacity: 2, price: 500, is_occupied: true },
-    { id: 4, room_number: '201', capacity: 4, price: 300, is_occupied: false },
+    { id: 1, room_number: '101', capacity: 2, price: 5000, is_occupied: false },
+    { id: 2, room_number: '102', capacity: 3, price: 5000, is_occupied: false },
+    { id: 3, room_number: '103', capacity: 2, price: 5000, is_occupied: true },
   ],
   bookings: [],
   students: []

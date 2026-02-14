@@ -230,8 +230,8 @@ ${report.students.map(s => `${s.name} (${s.student_id}) - Room: ${s.room_number 
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-all border-b-2 ${activeTab === tab.id
-                                        ? 'text-purple-400 border-purple-500 bg-purple-500/10'
-                                        : 'text-slate-400 border-transparent hover:text-white hover:bg-slate-800'
+                                    ? 'text-purple-400 border-purple-500 bg-purple-500/10'
+                                    : 'text-slate-400 border-transparent hover:text-white hover:bg-slate-800'
                                     }`}
                             >
                                 <tab.icon size={16} />
@@ -306,7 +306,7 @@ ${report.students.map(s => `${s.name} (${s.student_id}) - Room: ${s.room_number 
                                             <tr key={room.id} className="border-b border-slate-800/50 hover:bg-slate-800/20">
                                                 <td className="p-4 font-medium">{room.room_number}</td>
                                                 <td className="p-4 text-slate-400">{room.capacity}</td>
-                                                <td className="p-4 text-slate-400">${room.price}</td>
+                                                <td className="p-4 text-slate-400">Ksh.{room.price}</td>
                                                 <td className="p-4">
                                                     <span className={`px-2 py-1 rounded-full text-xs font-bold ${room.is_occupied ? 'bg-red-500/10 text-red-400' : 'bg-green-500/10 text-green-400'}`}>
                                                         {room.is_occupied ? 'Occupied' : 'Available'}
@@ -347,8 +347,8 @@ ${report.students.map(s => `${s.name} (${s.student_id}) - Room: ${s.room_number 
                             <button
                                 onClick={() => setStudentView('register')}
                                 className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${studentView === 'register'
-                                        ? 'bg-blue-600 text-white'
-                                        : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
                                     }`}
                             >
                                 <Plus size={16} /> Register New Student
@@ -356,8 +356,8 @@ ${report.students.map(s => `${s.name} (${s.student_id}) - Room: ${s.room_number 
                             <button
                                 onClick={() => setStudentView('list')}
                                 className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${studentView === 'list'
-                                        ? 'bg-blue-600 text-white'
-                                        : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
                                     }`}
                             >
                                 <Users size={16} /> Student List ({students.length})
@@ -472,7 +472,7 @@ ${report.students.map(s => `${s.name} (${s.student_id}) - Room: ${s.room_number 
                                                     <option value="">Select Room</option>
                                                     {rooms.filter(r => !r.is_occupied).map(room => (
                                                         <option key={room.id} value={room.room_number}>
-                                                            Room {room.room_number} (Capacity: {room.capacity}, ${room.price}/month)
+                                                            Room {room.room_number} (Capacity: {room.capacity}, Ksh{room.price}/semester)
                                                         </option>
                                                     ))}
                                                 </select>
@@ -516,7 +516,7 @@ ${report.students.map(s => `${s.name} (${s.student_id}) - Room: ${s.room_number 
                                         </h4>
                                         <div className="grid md:grid-cols-2 gap-4">
                                             <div>
-                                                <label className="block text-sm text-slate-400 mb-2">Amount Paid ($)</label>
+                                                <label className="block text-sm text-slate-400 mb-2">Amount Paid (Ksh)</label>
                                                 <input
                                                     type="number"
                                                     placeholder="0.00"

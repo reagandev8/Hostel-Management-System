@@ -92,15 +92,15 @@ const StudentDashboard = () => {
 
                                 <div className="flex items-end justify-between mt-6">
                                     <div>
-                                        <span className="text-2xl font-bold text-blue-400">${room.price}</span>
-                                        <span className="text-slate-500 text-sm">/month</span>
+                                        <span className="text-2xl font-bold text-blue-400">Ksh.{room.price}</span>
+                                        <span className="text-slate-500 text-sm">/semester</span>
                                     </div>
                                     <button
                                         onClick={() => handleBook(room.id)}
                                         disabled={room.is_occupied}
                                         className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${room.is_occupied
-                                                ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
-                                                : 'bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/20 active:scale-95'
+                                            ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                                            : 'bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/20 active:scale-95'
                                             }`}
                                     >
                                         {room.is_occupied ? 'Occupied' : 'Book Now'}
