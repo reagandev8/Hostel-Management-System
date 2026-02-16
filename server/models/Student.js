@@ -12,8 +12,8 @@ const studentSchema = new mongoose.Schema({
     },
     students_id: {
         type: String,
-        required: true,
-        unique: true
+        unique: true,
+        sparse: true // Allows multiple null/undefined values if we don't set it immediately
     },
     phone: {
         type: String

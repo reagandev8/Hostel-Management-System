@@ -34,6 +34,9 @@ app.post('/api/register/student', async (req, res) => {
         const existingUser = await User.findOne({ email });
         if (existingUser) return res.status(400).json({ error: "Email already registered" });
 
+        // Check if student profile already exists (e.g. added by admin)
+        let existingStudent = await Student.findOne({ email });
+
         // Create new user account
         const newUser = await User.create({
             username: email, // Student uses email as username
@@ -43,8 +46,20 @@ app.post('/api/register/student', async (req, res) => {
             name
         });
 
+        // If no student profile exists, create one so they show up in "Total Students"
+        if (!existingStudent) {
+            existingStudent = await Student.create({
+                name,
+                email,
+                // We don't have other details yet, but that's fine as we made fields optional
+            });
+        }
+
         res.json({ message: "Registration successful! Please login.", user: newUser });
     } catch (error) {
+        // If user creation fails (e.g. duplicate email race condition), we should probably not have created the student
+        // In a production app, use transactions. Here, we'll just return the error.
+        console.error("Registration error:", error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -199,7 +214,7 @@ app.get('/api/students/search', async (req, res) => {
             $or: [
                 { name: regex },
                 { email: regex },
-                { students_id: regex },
+                { students_id: regex }, // Note: Schema uses students_id
                 { room_number: regex }
             ]
         });
@@ -296,10 +311,32 @@ app.get('/api/bookings', async (req, res) => {
 app.post('/api/bookings', async (req, res) => {
     const { user_id, room_id, start_date, end_date } = req.body;
     try {
+        // Find the room
+        const room = await Room.findById(room_id);
+        if (!room) {
+            return res.status(404).json({ error: "Room not found" });
+        }
+
+        // Count existing *active* bookings (pending or confirmed) for this room.
+        // Assuming 'cancelled' doesn't count towards capacity.
+        const currentBookingsCount = await Booking.countDocuments({
+            room_id: room_id,
+            status: { $in: ['pending', 'confirmed'] }
+        });
+
+        // Check capacity
+        if (currentBookingsCount >= room.capacity) {
+            return res.status(400).json({ error: "Room is fully booked" });
+        }
+
+        // Create booking
         const booking = await Booking.create({ user_id, room_id, start_date, end_date });
 
-        // Update room status to occupied
-        await Room.findByIdAndUpdate(room_id, { is_occupied: true });
+        // Update room status ONLY if capacity is reached
+        // New count = current + 1
+        if (currentBookingsCount + 1 >= room.capacity) {
+            await Room.findByIdAndUpdate(room_id, { is_occupied: true });
+        }
 
         res.json(booking);
     } catch (error) {
@@ -311,8 +348,14 @@ app.post('/api/bookings', async (req, res) => {
 app.get('/api/reports', async (req, res) => {
     try {
         const totalRooms = await Room.countDocuments();
-        const occupiedRooms = await Room.countDocuments({ is_occupied: true });
-        const availableRooms = totalRooms - occupiedRooms;
+        // Occupied rooms are those marked is_occupied=true (meaning full)
+        const fullyOccupiedRooms = await Room.countDocuments({ is_occupied: true });
+
+        // This 'availableRooms' calculation might be misleading if we only count *fully* occupied rooms.
+        // A room with capacity 4 having 3 students is technically 'available' but partially occupied.
+        // For simplicity, let's keep it as total - full.
+        const availableRooms = totalRooms - fullyOccupiedRooms;
+
         const totalStudents = await Student.countDocuments();
         const totalBookings = await Booking.countDocuments();
         const pendingBookings = await Booking.countDocuments({ status: 'pending' });
@@ -329,7 +372,7 @@ app.get('/api/reports', async (req, res) => {
         ]);
         const totalCapacity = capacityResult.length > 0 ? capacityResult[0].total : 0;
 
-        const occupancyRate = totalRooms > 0 ? ((occupiedRooms / totalRooms) * 100).toFixed(1) : 0;
+        const occupancyRate = totalRooms > 0 ? ((fullyOccupiedRooms / totalRooms) * 100).toFixed(1) : 0;
 
         const rooms = await Room.find({});
         const students = await Student.find({});
@@ -338,7 +381,7 @@ app.get('/api/reports', async (req, res) => {
         res.json({
             summary: {
                 totalRooms,
-                occupiedRooms,
+                occupiedRooms: fullyOccupiedRooms,
                 availableRooms,
                 occupancyRate: parseFloat(occupancyRate),
                 totalStudents,
