@@ -31,9 +31,14 @@ const Login = ({ type }) => {
 
     return (
         <div className="min-h-screen flex items-center justify-center p-4 bg-slate-950 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-                <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"></div>
-                <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl"></div>
+            {/* Background Image */}
+            <div className="absolute inset-0 z-0">
+                <img
+                    src="https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=1920&q=80"
+                    alt="Background"
+                    className="w-full h-full object-cover opacity-40"
+                />
+                <div className="absolute inset-0 bg-gradient-to-br from-slate-950/90 via-slate-950/80 to-slate-950/90"></div>
             </div>
 
             <div className="w-full max-w-md glass p-8 rounded-2xl shadow-xl border border-slate-800 relative z-10">
@@ -57,36 +62,36 @@ const Login = ({ type }) => {
                 <form onSubmit={handleSubmit} className="space-y-5">
                     <div>
                         <label className="block text-sm font-medium text-slate-300 mb-1.5">
-                            {type === 'admin' ? 'Username' : 'Student ID'}
+                            {type === 'admin' ? 'Username' : 'Email Address'}
                         </label>
                         <input
-                            type="text"
+                            type={type === 'admin' ? "text" : "email"}
                             name="username"
                             value={formData.username}
                             onChange={handleChange}
                             className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none transition-all text-slate-100 placeholder-slate-600"
-                            placeholder={type === 'admin' ? "Enter your username" : "Enter your Student ID"}
+                            placeholder={type === 'admin' ? "Enter your username" : "your.email@example.com"}
                             required
                         />
                     </div>
                     <div>
                         <div className="flex justify-between items-center mt-1.5">
                             <label className="block text-sm font-medium text-slate-300">
-                                {type === 'admin' ? 'Password' : 'Email Address'}
+                                Password
                             </label>
                             {type === 'student' && (
                                 <Link to="/forgot-password" size="sm" className="text-xs text-blue-400 hover:text-blue-300 transition-colors">
-                                    Forgot Login Credentials?
+                                    Forgot Password?
                                 </Link>
                             )}
                         </div>
                         <input
-                            type={type === 'admin' ? "password" : "email"}
+                            type="password"
                             name="password"
                             value={formData.password}
                             onChange={handleChange}
                             className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none transition-all text-slate-100 placeholder-slate-600"
-                            placeholder={type === 'admin' ? "••••••••" : "Enter your registered email"}
+                            placeholder="••••••••"
                             required
                         />
                     </div>
@@ -101,8 +106,22 @@ const Login = ({ type }) => {
 
                 {type === 'student' && (
                     <div className="text-center mt-6">
-                        <p className="text-slate-500 text-xs italic">
-                            Only admin-registered students can access the dashboard.
+                        <p className="text-slate-400 text-sm">
+                            Don't have an account?{' '}
+                            <Link to="/student/signup" className="text-blue-400 hover:text-blue-300 transition-colors font-medium">
+                                Sign up here
+                            </Link>
+                        </p>
+                    </div>
+                )}
+
+                {type === 'admin' && (
+                    <div className="text-center mt-6">
+                        <p className="text-slate-400 text-sm">
+                            Need an admin account?{' '}
+                            <Link to="/admin/signup" className="text-purple-400 hover:text-purple-300 transition-colors font-medium">
+                                Register here
+                            </Link>
                         </p>
                     </div>
                 )}

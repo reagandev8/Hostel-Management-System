@@ -23,6 +23,22 @@
       "username": "Gigs",
       "password": "1234",
       "role": "student"
+    },
+    {
+      "id": 1771229438234,
+      "username": "adminn",
+      "email": "reagan@gmail.com",
+      "password": "123456",
+      "role": "admin",
+      "name": "reagan okoth"
+    },
+    {
+      "id": 1771229590845,
+      "username": "frank@gmail.com",
+      "email": "frank@gmail.com",
+      "password": "112233",
+      "role": "student",
+      "name": "frank ouma"
     }
   ],
   "rooms": [
@@ -31,6 +47,20 @@
       "is_occupied": true,
       "room_number": "101",
       "capacity": "4",
+      "price": "5000"
+    },
+    {
+      "id": 1771229721023,
+      "is_occupied": true,
+      "room_number": "102",
+      "capacity": "2",
+      "price": "5000"
+    },
+    {
+      "id": 1771231743896,
+      "is_occupied": false,
+      "room_number": "222",
+      "capacity": "3",
       "price": "5000"
     }
   ],
@@ -98,6 +128,14 @@
       "room_id": 1770882938131,
       "start_date": "2026-02-12T12:06:08.844Z",
       "end_date": "2026-03-14T12:06:08.844Z"
+    },
+    {
+      "id": 1771229748610,
+      "status": "pending",
+      "user_id": 1771229590845,
+      "room_id": 1771229721023,
+      "start_date": "2026-02-16T08:15:48.457Z",
+      "end_date": "2026-03-18T08:15:48.467Z"
     }
   ],
   "students": [

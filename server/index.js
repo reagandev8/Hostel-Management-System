@@ -8,48 +8,80 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
-// Register
-app.post('/api/register', (req, res) => {
-    const { username, password, role } = req.body;
-    if (!username || !password) return res.status(400).json({ error: "Username and password required" });
+// Register Student
+app.post('/api/register/student', (req, res) => {
+    const { email, password, name } = req.body;
+    if (!email || !password || !name) {
+        return res.status(400).json({ error: "Email, password, and name are required" });
+    }
 
-    // Restrict student from registering as admin
-    const finalRole = role === 'admin' ? 'student' : (role || 'student');
+    // Check if email already exists in users or students
+    const existingUser = db.users.find(u => u.email === email);
+    if (existingUser) return res.status(400).json({ error: "Email already registered" });
 
+    const existingStudent = db.students.findAll().find(s => s.email === email);
+    if (existingStudent) return res.status(400).json({ error: "Email already registered" });
+
+    // Create new user account
+    const newUser = db.users.create({
+        username: email,
+        email,
+        password,
+        role: 'student',
+        name
+    });
+
+    res.json({ message: "Registration successful! Please login.", user: newUser });
+});
+
+// Register Admin
+app.post('/api/register/admin', (req, res) => {
+    const { username, password, email, name } = req.body;
+    if (!username || !password || !email || !name) {
+        return res.status(400).json({ error: "All fields are required" });
+    }
+
+    // Check if username already exists
     const existingUser = db.users.find(u => u.username === username);
     if (existingUser) return res.status(400).json({ error: "Username already exists" });
 
-    const newUser = db.users.create({ username, password, role: finalRole });
-    res.json(newUser);
+    const existingEmail = db.users.find(u => u.email === email);
+    if (existingEmail) return res.status(400).json({ error: "Email already exists" });
+
+    const newUser = db.users.create({
+        username,
+        email,
+        password,
+        role: 'admin',
+        name
+    });
+
+    res.json({ message: "Admin registration successful! Please login.", user: newUser });
 });
 
 // Login
 app.post('/api/login', (req, res) => {
     const { username, password, role } = req.body;
-    console.log(`Login attempt: role=${role}, username=${username}`);
+    console.log(`Login attempt: role=${role}, username/email=${username}`);
 
     if (role === 'admin') {
+        // Admin login: username and password
         const user = db.users.find(u => u.username === username && u.password === password && u.role === 'admin');
         if (user) {
             console.log('Admin login successful');
             return res.json(user);
         }
     } else {
-        // Student login: username = student_id, password = email
-        const student = db.students.findAll().find(s =>
-            s.student_id.trim().toLowerCase() === username.trim().toLowerCase() &&
-            s.email.trim().toLowerCase() === password.trim().toLowerCase()
+        // Student login: email (passed as username) and password
+        const user = db.users.find(u =>
+            u.email && u.email.toLowerCase() === username.toLowerCase() &&
+            u.password === password &&
+            u.role === 'student'
         );
 
-        if (student) {
-            console.log('Student login successful:', student.name);
-            return res.json({
-                ...student,
-                username: student.name,
-                role: 'student'
-            });
-        } else {
-            console.log('Student not found with matching ID/Email');
+        if (user) {
+            console.log('Student login successful:', user.name);
+            return res.json(user);
         }
     }
 

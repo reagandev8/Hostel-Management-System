@@ -3,7 +3,8 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import Home from './pages/Home';
 import Login from './pages/Login';
-import Signup from './pages/Signup';
+import StudentSignup from './pages/StudentSignup';
+import AdminSignup from './pages/AdminSignup';
 import StudentDashboard from './pages/StudentDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import ForgotPassword from './pages/ForgotPassword';
@@ -31,7 +32,8 @@ function AppRoutes() {
     return (
         <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/student/signup" element={<Signup />} />
+            <Route path="/student/signup" element={<StudentSignup />} />
+            <Route path="/admin/signup" element={<AdminSignup />} />
             <Route path="/student/login" element={<Login type="student" />} />
             <Route path="/admin/login" element={<Login type="admin" />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />

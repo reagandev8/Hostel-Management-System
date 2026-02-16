@@ -93,7 +93,7 @@ const StudentDashboard = () => {
                                 <div className="flex items-end justify-between mt-6">
                                     <div>
                                         <span className="text-2xl font-bold text-blue-400">Ksh.{room.price}</span>
-                                        <span className="text-slate-500 text-sm">/semester</span>
+                                        <span className="text-slate-500 text-sm"> each student /semester</span>
                                     </div>
                                     <button
                                         onClick={() => handleBook(room.id)}
