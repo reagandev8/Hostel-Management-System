@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+    baseURL: import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://hostel-management-system-vvn2.onrender.com/api' : 'http://localhost:5000/api'),
 });
 
 // Add a response interceptor to handle errors globally if needed
