@@ -41,6 +41,12 @@ app.post('/api/register/admin', (req, res) => {
         return res.status(400).json({ error: "All fields are required" });
     }
 
+    // Check if an admin already exists
+    const existingAdmin = db.users.find(u => u.role === 'admin');
+    if (existingAdmin) {
+        return res.status(403).json({ error: "Admin account already exists. Only one admin is allowed." });
+    }
+
     // Check if username already exists
     const existingUser = db.users.find(u => u.username === username);
     if (existingUser) return res.status(400).json({ error: "Username already exists" });
@@ -60,21 +66,29 @@ app.post('/api/register/admin', (req, res) => {
 });
 
 // Login
+// Login - Refactored for strict role access
 app.post('/api/login', (req, res) => {
     const { username, password, role } = req.body;
     console.log(`Login attempt: role=${role}, username/email=${username}`);
 
+    let user = null;
+
     if (role === 'admin') {
-        // Admin login: username and password
-        const user = db.users.find(u => u.username === username && u.password === password && u.role === 'admin');
+        // Admin login: Strict check for admin role
+        user = db.users.find(u =>
+            u.username === username &&
+            u.password === password &&
+            u.role === 'admin'
+        );
+
         if (user) {
             console.log('Admin login successful');
             return res.json(user);
         }
-    } else {
-        // Student login: email (passed as username) and password
-        const user = db.users.find(u =>
-            u.email && u.email.toLowerCase() === username.toLowerCase() &&
+    } else if (role === 'student') {
+        // Student login: Check for student role (email or username)
+        user = db.users.find(u =>
+            (u.email && u.email.toLowerCase() === username.toLowerCase() || u.username === username) &&
             u.password === password &&
             u.role === 'student'
         );
@@ -85,8 +99,8 @@ app.post('/api/login', (req, res) => {
         }
     }
 
-    console.log('Login failed');
-    res.status(401).json({ error: "Invalid credentials or unauthorized" });
+    console.log('Login failed: Invalid credentials or role mismatch');
+    res.status(401).json({ error: "Invalid credentials or unauthorized access" });
 });
 
 // ======== ROOMS ========
