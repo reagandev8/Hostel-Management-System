@@ -1,245 +1,360 @@
 const express = require('express');
 const cors = require('cors');
-const db = require('./db');
+const dotenv = require('dotenv');
+const connectDB = require('./config/db');
+
+// Models
+const User = require('./models/User');
+const Student = require('./models/Student');
+const Room = require('./models/Room');
+const Booking = require('./models/Booking');
+
+dotenv.config();
+
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
+
+// Connect to MongoDB
+connectDB();
 
 app.use(cors());
 app.use(express.json());
 
 // Routes
+
 // Register Student
-app.post('/api/register/student', (req, res) => {
+app.post('/api/register/student', async (req, res) => {
     const { email, password, name } = req.body;
     if (!email || !password || !name) {
         return res.status(400).json({ error: "Email, password, and name are required" });
     }
 
-    // Check if email already exists in users or students
-    const existingUser = db.users.find(u => u.email === email);
-    if (existingUser) return res.status(400).json({ error: "Email already registered" });
+    try {
+        // Check if email already exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) return res.status(400).json({ error: "Email already registered" });
 
-    const existingStudent = db.students.findAll().find(s => s.email === email);
-    if (existingStudent) return res.status(400).json({ error: "Email already registered" });
+        // Create new user account
+        const newUser = await User.create({
+            username: email, // Student uses email as username
+            email,
+            password,
+            role: 'student',
+            name
+        });
 
-    // Create new user account
-    const newUser = db.users.create({
-        username: email,
-        email,
-        password,
-        role: 'student',
-        name
-    });
-
-    res.json({ message: "Registration successful! Please login.", user: newUser });
+        res.json({ message: "Registration successful! Please login.", user: newUser });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // Register Admin
-app.post('/api/register/admin', (req, res) => {
+app.post('/api/register/admin', async (req, res) => {
     const { username, password, email, name } = req.body;
     if (!username || !password || !email || !name) {
         return res.status(400).json({ error: "All fields are required" });
     }
 
-    // Check if an admin already exists
-    const existingAdmin = db.users.find(u => u.role === 'admin');
-    if (existingAdmin) {
-        return res.status(403).json({ error: "Admin account already exists. Only one admin is allowed." });
+    try {
+        // Check if an admin already exists
+        const existingAdmin = await User.findOne({ role: 'admin' });
+        if (existingAdmin) {
+            return res.status(403).json({ error: "Admin account already exists. Only one admin is allowed." });
+        }
+
+        // Check if username or email already exists
+        const existingUser = await User.findOne({ $or: [{ username }, { email }] });
+        if (existingUser) return res.status(400).json({ error: "Username or Email already exists" });
+
+        const newUser = await User.create({
+            username,
+            email,
+            password,
+            role: 'admin',
+            name
+        });
+
+        res.json({ message: "Admin registration successful! Please login.", user: newUser });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
-
-    // Check if username already exists
-    const existingUser = db.users.find(u => u.username === username);
-    if (existingUser) return res.status(400).json({ error: "Username already exists" });
-
-    const existingEmail = db.users.find(u => u.email === email);
-    if (existingEmail) return res.status(400).json({ error: "Email already exists" });
-
-    const newUser = db.users.create({
-        username,
-        email,
-        password,
-        role: 'admin',
-        name
-    });
-
-    res.json({ message: "Admin registration successful! Please login.", user: newUser });
 });
 
 // Login
-// Login - Refactored for strict role access
-app.post('/api/login', (req, res) => {
+app.post('/api/login', async (req, res) => {
     const { username, password, role } = req.body;
     console.log(`Login attempt: role=${role}, username/email=${username}`);
 
-    let user = null;
+    try {
+        let user = null;
 
-    if (role === 'admin') {
-        // Admin login: Strict check for admin role
-        user = db.users.find(u =>
-            u.username === username &&
-            u.password === password &&
-            u.role === 'admin'
-        );
+        if (role === 'admin') {
+            // Admin login: Strict check for admin role
+            user = await User.findOne({ username, password, role: 'admin' });
 
-        if (user) {
-            console.log('Admin login successful');
-            return res.json(user);
+            if (user) {
+                console.log('Admin login successful');
+                return res.json(user);
+            }
+        } else if (role === 'student') {
+            // Student login: Check for student role (email or username)
+            // Note: In registration, we set username = email for students, but allow flexibility here
+            user = await User.findOne({
+                $and: [
+                    { $or: [{ email: username }, { username: username }] },
+                    { password: password },
+                    { role: 'student' }
+                ]
+            });
+
+            if (user) {
+                console.log('Student login successful:', user.name);
+                return res.json(user);
+            }
         }
-    } else if (role === 'student') {
-        // Student login: Check for student role (email or username)
-        user = db.users.find(u =>
-            (u.email && u.email.toLowerCase() === username.toLowerCase() || u.username === username) &&
-            u.password === password &&
-            u.role === 'student'
-        );
 
-        if (user) {
-            console.log('Student login successful:', user.name);
-            return res.json(user);
-        }
+        console.log('Login failed: Invalid credentials or role mismatch');
+        res.status(401).json({ error: "Invalid credentials or unauthorized access" });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
-
-    console.log('Login failed: Invalid credentials or role mismatch');
-    res.status(401).json({ error: "Invalid credentials or unauthorized access" });
 });
 
 // ======== ROOMS ========
 // Get Rooms
-app.get('/api/rooms', (req, res) => {
-    const rooms = db.rooms.findAll();
-    res.json(rooms);
+app.get('/api/rooms', async (req, res) => {
+    try {
+        const rooms = await Room.find({});
+        res.json(rooms);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // Search Rooms
-app.get('/api/rooms/search', (req, res) => {
+app.get('/api/rooms/search', async (req, res) => {
     const { q } = req.query;
-    if (!q) return res.json(db.rooms.findAll());
-    const results = db.rooms.search(q);
-    res.json(results);
+    if (!q) {
+        const rooms = await Room.find({});
+        return res.json(rooms);
+    }
+
+    try {
+        const regex = new RegExp(q, 'i');
+        const results = await Room.find({ room_number: regex });
+        res.json(results);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // Add Room (Admin)
-app.post('/api/rooms', (req, res) => {
+app.post('/api/rooms', async (req, res) => {
     const { room_number, capacity, price } = req.body;
-    const newRoom = db.rooms.create({ room_number, capacity, price });
-    res.json(newRoom);
+    try {
+        const newRoom = await Room.create({ room_number, capacity, price });
+        res.json(newRoom);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // Delete Room (Admin)
-app.delete('/api/rooms/:id', (req, res) => {
-    const id = parseInt(req.params.id);
-    const deleted = db.rooms.delete(id);
-    if (deleted) {
-        res.json({ message: 'Room deleted successfully', room: deleted });
-    } else {
-        res.status(404).json({ error: 'Room not found' });
+app.delete('/api/rooms/:id', async (req, res) => {
+    try {
+        const deleted = await Room.findByIdAndDelete(req.params.id);
+        if (deleted) {
+            res.json({ message: 'Room deleted successfully', room: deleted });
+        } else {
+            res.status(404).json({ error: 'Room not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 });
 
 // ======== STUDENTS ========
 // Get all Students
-app.get('/api/students', (req, res) => {
-    const students = db.students.findAll();
-    res.json(students);
+app.get('/api/students', async (req, res) => {
+    try {
+        const students = await Student.find({});
+        res.json(students);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // Search Students
-app.get('/api/students/search', (req, res) => {
+app.get('/api/students/search', async (req, res) => {
     const { q } = req.query;
-    if (!q) return res.json(db.students.findAll());
-    const results = db.students.search(q);
-    res.json(results);
+    if (!q) {
+        const students = await Student.find({});
+        return res.json(students);
+    }
+
+    try {
+        const regex = new RegExp(q, 'i');
+        const results = await Student.find({
+            $or: [
+                { name: regex },
+                { email: regex },
+                { students_id: regex },
+                { room_number: regex }
+            ]
+        });
+        res.json(results);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // Get Single Student
-app.get('/api/students/:id', (req, res) => {
-    const id = parseInt(req.params.id);
-    const student = db.students.findById(id);
-    if (student) {
-        res.json(student);
-    } else {
-        res.status(404).json({ error: 'Student not found' });
+app.get('/api/students/:id', async (req, res) => {
+    try {
+        const student = await Student.findById(req.params.id);
+        if (student) {
+            res.json(student);
+        } else {
+            res.status(404).json({ error: 'Student not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 });
 
 // Add Student
-app.post('/api/students', (req, res) => {
+app.post('/api/students', async (req, res) => {
     const { name, email, phone, student_id, room_number, course, year, guardian_name, guardian_phone, amount_paid } = req.body;
     if (!name || !email || !student_id) {
         return res.status(400).json({ error: "Name, email, and student ID are required" });
     }
-    const newStudent = db.students.create({
-        name, email, phone, student_id, room_number, course, year,
-        guardian_name, guardian_phone, amount_paid: parseFloat(amount_paid) || 0
-    });
-    res.json(newStudent);
+
+    try {
+        const newStudent = await Student.create({
+            name, email, phone,
+            students_id: student_id,
+            room_number, course, year,
+            guardian_name, guardian_phone,
+            amount_paid: parseFloat(amount_paid) || 0
+        });
+        res.json(newStudent);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // Update Student
-app.put('/api/students/:id', (req, res) => {
-    const id = parseInt(req.params.id);
-    const updates = req.body;
-    if (updates.amount_paid) {
-        updates.amount_paid = parseFloat(updates.amount_paid) || 0;
-    }
-    const updated = db.students.update(id, updates);
-    if (updated) {
-        res.json(updated);
-    } else {
-        res.status(404).json({ error: 'Student not found' });
+app.put('/api/students/:id', async (req, res) => {
+    try {
+        const updates = req.body;
+        if (updates.amount_paid) {
+            updates.amount_paid = parseFloat(updates.amount_paid) || 0;
+        }
+        if (updates.student_id) {
+            updates.students_id = updates.student_id;
+            delete updates.student_id;
+        }
+
+        const updated = await Student.findByIdAndUpdate(req.params.id, updates, { new: true });
+        if (updated) {
+            res.json(updated);
+        } else {
+            res.status(404).json({ error: 'Student not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 });
 
 // Delete Student
-app.delete('/api/students/:id', (req, res) => {
-    const id = parseInt(req.params.id);
-    const deleted = db.students.delete(id);
-    if (deleted) {
-        res.json({ message: 'Student deleted successfully', student: deleted });
-    } else {
-        res.status(404).json({ error: 'Student not found' });
+app.delete('/api/students/:id', async (req, res) => {
+    try {
+        const deleted = await Student.findByIdAndDelete(req.params.id);
+        if (deleted) {
+            res.json({ message: 'Student deleted successfully', student: deleted });
+        } else {
+            res.status(404).json({ error: 'Student not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 });
 
 // ======== BOOKINGS ========
 // Get all Bookings
-app.get('/api/bookings', (req, res) => {
-    const bookings = db.bookings.findAll();
-    res.json(bookings);
+app.get('/api/bookings', async (req, res) => {
+    try {
+        const bookings = await Booking.find({}).populate('user_id').populate('room_id');
+        res.json(bookings);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // Book Room
-app.post('/api/bookings', (req, res) => {
+app.post('/api/bookings', async (req, res) => {
     const { user_id, room_id, start_date, end_date } = req.body;
-    const booking = db.bookings.create({ user_id, room_id, start_date, end_date });
+    try {
+        const booking = await Booking.create({ user_id, room_id, start_date, end_date });
 
-    // Update room status to occupied
-    db.rooms.update(room_id, { is_occupied: true });
+        // Update room status to occupied
+        await Room.findByIdAndUpdate(room_id, { is_occupied: true });
 
-    res.json(booking);
-});
-
-// ======== SEARCH (Global) ========
-app.get('/api/search', (req, res) => {
-    const { q, type } = req.query;
-    if (!q) return res.status(400).json({ error: "Search query is required" });
-
-    let results = { rooms: [], students: [] };
-
-    if (!type || type === 'all' || type === 'rooms') {
-        results.rooms = db.rooms.search(q);
+        res.json(booking);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
-    if (!type || type === 'all' || type === 'students') {
-        results.students = db.students.search(q);
-    }
-
-    res.json(results);
 });
 
 // ======== REPORTS ========
-app.get('/api/reports', (req, res) => {
-    const report = db.reports.generate();
-    res.json(report);
+app.get('/api/reports', async (req, res) => {
+    try {
+        const totalRooms = await Room.countDocuments();
+        const occupiedRooms = await Room.countDocuments({ is_occupied: true });
+        const availableRooms = totalRooms - occupiedRooms;
+        const totalStudents = await Student.countDocuments();
+        const totalBookings = await Booking.countDocuments();
+        const pendingBookings = await Booking.countDocuments({ status: 'pending' });
+
+        // Aggregate revenue
+        const revenueResult = await Student.aggregate([
+            { $group: { _id: null, total: { $sum: "$amount_paid" } } }
+        ]);
+        const totalRevenue = revenueResult.length > 0 ? revenueResult[0].total : 0;
+
+        // Aggregate capacity
+        const capacityResult = await Room.aggregate([
+            { $group: { _id: null, total: { $sum: "$capacity" } } }
+        ]);
+        const totalCapacity = capacityResult.length > 0 ? capacityResult[0].total : 0;
+
+        const occupancyRate = totalRooms > 0 ? ((occupiedRooms / totalRooms) * 100).toFixed(1) : 0;
+
+        const rooms = await Room.find({});
+        const students = await Student.find({});
+        const bookings = await Booking.find({});
+
+        res.json({
+            summary: {
+                totalRooms,
+                occupiedRooms,
+                availableRooms,
+                occupancyRate: parseFloat(occupancyRate),
+                totalStudents,
+                totalBookings,
+                pendingBookings,
+                totalRevenue,
+                totalCapacity
+            },
+            rooms,
+            students,
+            bookings,
+            generatedAt: new Date().toISOString()
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 app.listen(PORT, () => {
